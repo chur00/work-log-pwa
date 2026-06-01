@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>部署指南</title>
+<style>
+body { font-family:-apple-system,"Microsoft YaHei",sans-serif; max-width:600px; margin:0 auto; padding:24px; background:#f7f6f3; color:#222; font-size:14px; line-height:1.8; }
+h1 { font-size:20px; margin-bottom:8px; }
+h2 { font-size:16px; margin-top:28px; border-bottom:0.5px solid #ddd; padding-bottom:8px; }
+.card { background:#fff; border-radius:12px; padding:16px 20px; margin:12px 0; border:0.5px solid #e8e6e0; }
+.card h3 { margin:0 0 8px; font-size:15px; }
+.badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; }
+.badge-green { background:#ecfdf5; color:#059669; }
+.badge-blue { background:#eff6ff; color:#3b82f6; }
+.badge-amber { background:#fffbeb; color:#d97706; }
+.steps { padding-left:20px; }
+.steps li { margin:6px 0; }
+code { background:#f0efec; padding:2px 6px; border-radius:4px; font-size:13px; }
+.btn { display:inline-block; padding:10px 20px; background:#3b82f6; color:#fff; border-radius:8px; text-decoration:none; font-weight:500; margin:4px; }
+</style>
+</head>
+<body>
+<h1>日常工作记录 APP 部署指南</h1>
+<p>PWA 文件已生成在 <code>pwa/</code> 目录下，选一种方式部署即可在安卓手机上安装使用。</p>
+
+<h2>方案一：Netlify Drop（推荐）</h2>
+<div class="card">
+  <h3>拖拽上传，即时 HTTPS 上线 <span class="badge badge-green">免费</span></h3>
+  <ol class="steps">
+    <li>打开 <a href="https://app.netlify.com/drop" target="_blank">app.netlify.com/drop</a></li>
+    <li>把电脑上的 <code>pwa/</code> 文件夹直接拖入网页</li>
+    <li>等待上传完成，获得一个 <code>https://xxx.netlify.app</code> 地址</li>
+    <li>在安卓手机 Chrome 打开该地址，会自动弹出"添加到桌面"</li>
+  </ol>
+</div>
+
+<h2>方案二：连接 EdgeOne Pages</h2>
+<div class="card">
+  <h3>腾讯云边缘部署 <span class="badge badge-blue">推荐</span></h3>
+  <ol class="steps">
+    <li>在 WorkBuddy 左侧点击「连接器」→ 连接「EdgeOne Pages」</li>
+    <li>连接后告诉我，我直接帮你部署</li>
+  </ol>
+</div>
+
+<h2>方案三：局域网访问</h2>
+<div class="card">
+  <h3>电脑开服务器，手机连 WiFi 访问 <span class="badge badge-amber">临时</span></h3>
+  <ol class="steps">
+    <li>双击 <code>pwa/start.bat</code> 启动本地服务器</li>
+    <li>界面会显示手机可访问的地址（如 <code>http://192.168.1.100:8080</code>）</li>
+    <li>手机连同一个 WiFi，浏览器打开该地址即可</li>
+    <li>注意：没有 HTTPS，不能安装到桌面，但可以正常使用拍照功能</li>
+  </ol>
+</div>
+
+<h2>文件清单</h2>
+<div class="card">
+  <table style="width:100%; border-collapse:collapse;">
+    <tr><td style="padding:4px 0;"><code>index.html</code></td><td>APP 主文件（移动端优化 + 拍照功能）</td></tr>
+    <tr><td style="padding:4px 0;"><code>manifest.json</code></td><td>PWA 安装配置</td></tr>
+    <tr><td style="padding:4px 0;"><code>service-worker.js</code></td><td>离线缓存支持</td></tr>
+    <tr><td style="padding:4px 0;"><code>icon-192.png / icon-512.png</code></td><td>APP 图标</td></tr>
+    <tr><td style="padding:4px 0;"><code>netlify.toml</code></td><td>Netlify 部署配置</td></tr>
+    <tr><td style="padding:4px 0;"><code>start.bat</code></td><td>本地服务器启动脚本</td></tr>
+  </table>
+</div>
+</body>
+</html>
