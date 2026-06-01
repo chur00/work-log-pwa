@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="工作记录">
+<meta name="theme-color" content="#3b82f6">
+<link rel="manifest" href="manifest.json">
+<title>日常工作记录</title>
+<style>
+:root {
+  --bg: #f5f4f1; --card: #fff; --border: #e8e6e0;
+  --text: #1f1f1f; --text2: #999; --blue: #3b82f6; --green: #059669;
+  --amber: #d97706; --red: #dc2626; --purple: #7c3aed;
+  --safe-bottom: env(safe-area-inset-bottom, 16px);
+}
+* { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+body { font-family:-apple-system,"Microsoft YaHei","PingFang SC",sans-serif; background:var(--bg); color:var(--text); font-size:14px; line-height:1.6; padding-bottom:calc(80px + var(--safe-bottom)); user-select:none; }
+.topbar {
+  position:sticky; top:0; z-index:100; background:var(--blue); color:#fff;
+  padding:12px 16px; padding-top:max(12px, env(safe-area-inset-top, 0));
+  display:flex; align-items:center; justify-content:space-between;
+}
+.topbar h1 { font-size:16px; font-weight:500; }
+.topbar .date-badge { font-size:12px; opacity:0.85; }
+.tabs {
+  position:sticky; top:48px; z-index:99; background:var(--card);
+  display:flex; overflow-x:auto; border-bottom:0.5px solid var(--border);
+  -webkit-overflow-scrolling:touch;
+}
+.tabs::-webkit-scrollbar { display:none; }
+.tab {
+  flex-shrink:0; padding:12px 16px; font-size:13px; color:var(--text2);
+  border-bottom:2px solid transparent; white-space:nowrap; cursor:pointer;
+}
+.tab.active { color:var(--blue); border-bottom-color:var(--blue); font-weight:500; }
+.content { padding:12px 16px; }
+.section { display:none; }
+.section.active { display:block; }
+.card { background:var(--card); border:0.5px solid var(--border); border-radius:12px; margin-bottom:12px; overflow:hidden; }
+.card-hd {
+  padding:12px 16px; font-size:14px; font-weight:500; border-bottom:0.5px solid var(--border);
+  display:flex; align-items:center; gap:8px;
+}
+.card-hd .dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.card-bd { padding:12px 16px; }
+.info-row {
+  display:grid; grid-template-columns:auto 1fr; gap:8px 12px; align-items:center;
+}
+.info-row label { font-size:12px; color:var(--text2); }
+.info-row input { border:0.5px solid var(--border); border-radius:8px; padding:8px 10px; font-size:14px; background:var(--bg); width:100%; }
+.form-row {
+  display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; margin-bottom:10px;
+}
+.form-row .fld label { display:block; font-size:11px; color:var(--text2); margin-bottom:3px; }
+.form-row .fld input, .form-row .fld select {
+  width:100%; border:0.5px solid var(--border); border-radius:8px; padding:8px 10px;
+  font-size:13px; background:var(--bg);
+}
+.platform-card {
+  padding:12px; border:0.5px solid var(--border); border-radius:10px; margin-bottom:10px; background:var(--bg);
+}
+.platform-card .pname { font-size:13px; font-weight:500; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+.platform-card .pname .pdot { width:6px; height:6px; border-radius:50%; }
+.pgrid { display:grid; grid-template-columns:1fr 1fr; gap:6px 10px; }
+.pgrid input, .pgrid select { width:100%; border:0.5px solid var(--border); border-radius:6px; padding:7px 8px; font-size:13px; background:var(--card); }
+.pgrid textarea { grid-column:1/-1; border:0.5px solid var(--border); border-radius:6px; padding:7px 8px; font-size:13px; background:var(--card); resize:none; min-height:32px; font-family:inherit; }
+.wh-row {
+  padding:10px 0; border-bottom:0.5px solid var(--border);
+  display:grid; grid-template-columns:1fr 1fr; gap:6px 10px;
+}
+.wh-row:last-child { border-bottom:none; }
+.wh-row input, .wh-row select {
+  border:0.5px solid var(--border); border-radius:6px; padding:7px 8px; font-size:13px; background:var(--bg); width:100%;
+}
+.wh-row input.w-full { grid-column:1/-1; }
+.xy-row {
+  padding:10px 0; border-bottom:0.5px solid var(--border);
+  display:grid; grid-template-columns:1fr 1fr; gap:6px 10px; align-items:start;
+}
+.xy-row:last-child { border-bottom:none; }
+.xy-row input, .xy-row select {
+  border:0.5px solid var(--border); border-radius:6px; padding:7px 8px; font-size:13px; background:var(--bg); width:100%;
+}
+.xy-row .full { grid-column:1/-1; }
+.photo-area {
+  grid-column:1/-1; margin-top:6px;
+  display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+}
+.photo-thumb {
+  width:64px; height:64px; border-radius:8px; border:0.5px solid var(--border);
+  object-fit:cover; background:var(--bg);
+}
+.photo-btn {
+  display:inline-flex; align-items:center; gap:4px;
+  border:0.5px dashed var(--border); border-radius:8px; padding:8px 12px;
+  font-size:12px; color:var(--blue); background:transparent; cursor:pointer;
+}
+.misc-grid { display:grid; grid-template-columns:1fr; gap:10px; }
+.misc-card { background:var(--bg); border-radius:10px; padding:12px; }
+.misc-card label { font-size:12px; color:var(--text2); display:block; margin-bottom:6px; }
+.misc-card textarea {
+  width:100%; border:0.5px solid var(--border); border-radius:8px; padding:10px;
+  font-size:13px; background:var(--card); resize:none; min-height:80px; font-family:inherit;
+}
+.summary-row { display:grid; grid-template-columns:1fr 1fr; gap:8px 12px; margin-bottom:10px; }
+.summary-row .sfield label { font-size:11px; color:var(--text2); display:block; margin-bottom:3px; }
+.summary-row .sfield input { width:100%; border:0.5px solid var(--border); border-radius:8px; padding:8px 10px; font-size:13px; background:var(--bg); }
+.summary-row .full { grid-column:1/-1; }
+.summary-row .full textarea {
+  width:100%; border:0.5px solid var(--border); border-radius:8px; padding:10px;
+  font-size:13px; background:var(--bg); resize:none; min-height:60px; font-family:inherit;
+}
+.add-btn {
+  display:flex; align-items:center; justify-content:center; gap:4px;
+  width:100%; padding:8px; font-size:13px; color:var(--blue);
+  border:0.5px dashed var(--border); border-radius:8px; background:transparent; cursor:pointer; margin-top:8px;
+}
+.bottombar {
+  position:fixed; bottom:0; left:0; right:0; z-index:100;
+  background:var(--card); border-top:0.5px solid var(--border);
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom, 0));
+  display:flex; gap:8px;
+}
+.btn {
+  flex:1; padding:10px; border-radius:10px; font-size:14px; font-weight:500; cursor:pointer; border:none; text-align:center;
+}
+.btn-save { background:var(--blue); color:#fff; }
+.btn-ghost { background:transparent; border:0.5px solid var(--border); color:var(--text); }
+.btn-danger { background:transparent; border:0.5px solid var(--red); color:var(--red); }
+.btn-icon { width:40px; height:40px; padding:0; flex:0; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+
+/* Photo modal */
+.modal-mask {
+  display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,0.5);
+  align-items:flex-end; justify-content:center;
+}
+.modal-mask.show { display:flex; }
+.modal {
+  background:var(--card); border-radius:16px 16px 0 0; width:100%; max-width:480px;
+  padding:20px 16px calc(20px + env(safe-area-inset-bottom, 0));
+  animation:slideUp 0.25s ease;
+}
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.modal h3 { font-size:15px; font-weight:500; margin-bottom:16px; text-align:center; }
+.modal-actions { display:flex; gap:8px; margin-top:16px; }
+.modal-actions .btn { flex:1; }
+#cameraPreview {
+  width:100%; border-radius:10px; background:#000; display:none;
+  max-height:60vh; object-fit:cover;
+}
+#cameraCanvas { display:none; }
+.toast {
+  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:300;
+  background:rgba(0,0,0,0.8); color:#fff; padding:10px 20px; border-radius:8px; font-size:13px;
+  pointer-events:none; opacity:0; transition:opacity 0.3s;
+}
+.toast.show { opacity:1; }
+input:focus, select:focus, textarea:focus { outline:2px solid var(--blue); outline-offset:-1px; }
+.calc-field { color:var(--green); font-weight:500; background:var(--bg)!important; }
+.shops-grid { grid-template-columns:1fr 1fr; }
+.shops-grid .fld { display:flex; flex-direction:column; }
+.shops-grid .fld label { font-size:11px; color:var(--text2); margin-bottom:2px; }
+.shops-grid .fld input { width:100%; border:0.5px solid var(--border); border-radius:6px; padding:7px 8px; font-size:13px; background:var(--card); }
+.shops-grid select, .shops-grid textarea, .shops-grid > input { grid-column:1/-1; }
+.plat-chart { width:100%; display:block; margin-top:8px; border-top:0.5px solid var(--border); padding-top:6px; }
+.plat-chart-legend { display:flex; gap:10px; justify-content:center; padding:4px 0 0; font-size:10px; flex-wrap:wrap; }
+.plat-chart-legend span { display:flex; align-items:center; gap:3px; }
+.plat-chart-legend .dot { width:8px; height:8px; border-radius:2px; display:inline-block; }
+
+/* Date chips */
+.date-chips { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+.date-chip {
+  padding:5px 12px; border-radius:14px; font-size:12px; border:0.5px solid var(--border);
+  background:var(--card); color:var(--text2); cursor:pointer; white-space:nowrap; transition:all 0.15s;
+}
+.date-chip.active { background:var(--blue); color:#fff; border-color:var(--blue); }
+.date-chip.has-data { border-color:var(--green); color:var(--green); }
+.date-chip.has-data.active { background:var(--green); color:#fff; border-color:var(--green); }
+
+/* Search bar */
+.search-bar {
+  width:100%; border:0.5px solid var(--border); border-radius:10px; padding:9px 12px;
+  font-size:13px; background:var(--bg); margin-bottom:8px;
+}
+.search-bar:focus { outline:2px solid var(--blue); outline-offset:-1px; }
+
+/* Mode toggle */
+.mode-toggle { display:flex; gap:0; margin-bottom:10px; border:0.5px solid var(--border); border-radius:10px; overflow:hidden; }
+.mode-toggle button {
+  flex:1; padding:8px; font-size:12px; border:none; background:var(--card); color:var(--text2); cursor:pointer; text-align:center;
+}
+.mode-toggle button.active { background:var(--blue); color:#fff; }
+
+/* History table */
+.history-list { max-height:60vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.history-item {
+  padding:10px 0; border-bottom:0.5px solid var(--border); cursor:pointer;
+  display:grid; grid-template-columns:60px 1fr; gap:6px 8px; align-items:start;
+}
+.history-item:last-child { border-bottom:none; }
+.history-item .hdate { font-size:13px; font-weight:500; color:var(--blue); }
+.history-item .hmeta { font-size:11px; color:var(--text2); display:flex; flex-wrap:wrap; gap:4px 10px; }
+.history-item .hstatus { font-size:10px; padding:2px 6px; border-radius:3px; }
+.history-item .hstatus.ok { background:#e6f4ea; color:var(--green); }
+.history-item .hstatus.warn { background:#fef3c7; color:var(--amber); }
+.hitem-empty { text-align:center; padding:30px 0; color:var(--text2); font-size:13px; }
+.highlight { background:#fef08a; border-radius:2px; }
+
+/* Xianyu timestamp fields */
+.xy-field-ts {
+  border:0.5px dashed var(--border); border-radius:6px; padding:7px 8px;
+  font-size:11px; color:var(--text2); background:var(--bg); min-height:30px;
+  display:flex; align-items:center; width:100%; cursor:default; user-select:text;
+}
+
+/* Operation log */
+.log-list { max-height:65vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.log-item {
+  padding:10px 0; border-bottom:0.5px solid var(--border);
+  display:grid; grid-template-columns:auto 1fr; gap:4px 10px; align-items:start;
+}
+.log-item:last-child { border-bottom:none; }
+.log-dot {
+  width:8px; height:8px; border-radius:50%; margin-top:4px; flex-shrink:0;
+}
+.log-time { font-size:11px; color:var(--text2); }
+.log-detail { font-size:13px; color:var(--text); line-height:1.5; }
+.log-badge {
+  display:inline-block; padding:1px 7px; border-radius:3px; font-size:10px;
+  font-weight:500; margin-right:6px;
+}
+.log-badge.save { background:#eff6ff; color:var(--blue); }
+.log-badge.reset { background:#fef2f2; color:var(--red); }
+.log-badge.xy_listed { background:#ecfdf5; color:var(--green); }
+.log-badge.xy_sold { background:#fffbeb; color:var(--amber); }
+.log-badge.xy_add { background:#f5f3ff; color:var(--purple); }
+.log-badge.wh_add { background:#ecfdf5; color:#0891b2; }
+.log-badge.date_switch { background:#f0f9ff; color:#0369a1; }
+.log-badge.photo_add { background:#fefce8; color:#a16207; }
+.log-badge.xy_delete { background:#fef2f2; color:var(--red); }
+.log-badge.wh_delete { background:#fff7ed; color:#c2410c; }
+.log-view-btn {
+  flex-shrink: 0; width: 44px; height: 28px; border: 1px solid var(--border);
+  border-radius: 14px; background: var(--card); color: var(--text2);
+  font-size: 12px; cursor: pointer; display: flex; align-items: center;
+  justify-content: center;
+}
+.log-view-btn:active { background: var(--blue); color: #fff; border-color: var(--blue); }
+.oplog-toggle-btn {
+  display: block; width: 100%; margin: 0 0 12px; padding: 14px 16px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  font-size: 15px; font-weight: 500; color: var(--text); cursor: pointer;
+  text-align: center; position: relative; transition: background 0.15s;
+}
+.oplog-toggle-btn:active { background: #eff6ff; border-color: var(--blue); }
+.oplog-badge {
+  display: inline-block; min-width: 22px; height: 22px; line-height: 22px;
+  font-size: 12px; font-weight: 600; color: #fff; background: var(--blue);
+  border-radius: 11px; padding: 0 6px; margin-left: 6px; vertical-align: middle;
+}
+.oplog-section { display: none !important; }
+.oplog-section.show { display: block !important; }
+.log-empty { text-align:center; padding:30px 0; color:var(--text2); font-size:13px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>日常工作记录</h1>
+  <div class="date-badge" id="dateDisp">6月1日 周一</div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="shop">店铺巡查</div>
+  <div class="tab" data-tab="wh">仓库盘点</div>
+  <div class="tab" data-tab="xy">闲鱼上架</div>
+  <div class="tab" data-tab="misc">杂事小结</div>
+</div>
+
+<div class="content">
+
+  <!-- ====== 店铺巡查 ====== -->
+  <section class="section active" id="sec-shop">
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-bd">
+        <div class="info-row">
+          <label>日期</label><input type="date" id="logDate">
+        </div>
+        <div class="date-chips" id="quickDates"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><div class="dot" style="background:var(--blue)"></div>店铺数据巡查<span style="font-size:11px;color:var(--text2);margin-left:auto;">~1h</span></div>
+      <div class="card-bd">
+        <!-- 淘宝 -->
+        <div class="platform-card">
+          <div class="pname"><div class="pdot" style="background:#ff5000"></div>淘宝</div>
+          <div class="pgrid shops-grid">
+            <div class="fld"><label>昨日金额</label><input placeholder="元" data-platform="tb" data-field="yestAmt" oninput="calcActual('tb');updateChart()" inputmode="decimal"></div>
+            <div class="fld"><label>退款金额</label><input placeholder="元" data-platform="tb" data-field="refundAmt" oninput="calcActual('tb');updateChart()" inputmode="decimal"></div>
+            <div class="fld"><label>实际金额</label><input placeholder="自动计算" data-platform="tb" data-field="actualAmt" readonly class="calc-field" tabindex="-1"></div>
+            <div class="fld"><label>直通车金额</label><input placeholder="元" data-platform="tb" data-field="ztcAmt" oninput="updateChart()" inputmode="decimal"></div>
+            <div class="fld"><label>总访客</label><input placeholder="人" data-platform="tb" data-field="visitors" oninput="updateChart()" inputmode="numeric"></div>
+            <div class="fld"><label>成交人数</label><input placeholder="人" data-platform="tb" data-field="orders" oninput="updateChart()" inputmode="numeric"></div>
+            <select data-platform="tb" data-field="status"><option>正常</option><option>有异常</option><option>已处理</option></select>
+            <textarea placeholder="待处理事项: 退款/投诉/问大家..." data-platform="tb" data-field="note"></textarea>
+            <input placeholder="处理记录" data-platform="tb" data-field="action">
+          </div>
+          <canvas class="plat-chart" id="chart-tb" height="210"></canvas>
+        </div>
+        <!-- 天猫 -->
+        <div class="platform-card">
+          <div class="pname"><div class="pdot" style="background:#e02e24"></div>天猫</div>
+          <div class="pgrid shops-grid">
+            <div class="fld"><label>昨日金额</label><input placeholder="元" data-platform="tm" data-field="yestAmt" oninput="calcActual('tm');updateChart()" inputmode="decimal"></div>
+            <div class="fld"><label>退款金额</label><input placeholder="元" data-platform="tm" data-field="refundAmt" oninput="calcActual('tm');updateChart()" inputmode="decimal"></div>
+            <div class="fld"><label>实际金额</label><input placeholder="自动计算" data-platform="tm" data-field="actualAmt" readonly class="calc-field" tabindex="-1"></div>
+            <div class="fld"><label>直通车金额</label><input placeholder="元" data-platform="tm" data-field="ztcAmt" oninput="updateChart()" inputmode="decimal"></div>
+            <div class="fld"><label>总访客</label><input placeholder="人" data-platform="tm" data-field="visitors" oninput="updateChart()" inputmode="numeric"></div>
+            <div class="fld"><label>成交人数</label><input placeholder="人" data-platform="tm" data-field="orders" oninput="updateChart()" inputmode="numeric"></div>
+            <select data-platform="tm" data-field="status"><option>正常</option><option>有异常</option><option>已处理</option></select>
+            <textarea placeholder="待处理事项" data-platform="tm" data-field="note"></textarea>
+            <input placeholder="处理记录" data-platform="tm" data-field="action">
+          </div>
+          <canvas class="plat-chart" id="chart-tm" height="210"></canvas>
+        </div>
+        <!-- 抖音 -->
+        <div class="platform-card">
+          <div class="pname"><div class="pdot" style="background:#000"></div>抖音</div>
+          <div class="pgrid shops-grid">
+            <div class="fld"><label>昨日金额</label><input placeholder="元" data-platform="dy" data-field="yestAmt" oninput="calcActual('dy');updateChart()" inputmode="decimal"></div>
+            <div class="fld"><label>退款金额</label><input placeholder="元" data-platform="dy" data-field="refundAmt" oninput="calcActual('dy');updateChart()" inputmode="decimal"></div>
+            <div class="fld"><label>实际金额</label><input placeholder="自动计算" data-platform="dy" data-field="actualAmt" readonly class="calc-field" tabindex="-1"></div>
+            <div class="fld"><label>直通车金额</label><input placeholder="元" data-platform="dy" data-field="ztcAmt" oninput="updateChart()" inputmode="decimal"></div>
+            <div class="fld"><label>总访客</label><input placeholder="人" data-platform="dy" data-field="visitors" oninput="updateChart()" inputmode="numeric"></div>
+            <div class="fld"><label>成交人数</label><input placeholder="人" data-platform="dy" data-field="orders" oninput="updateChart()" inputmode="numeric"></div>
+            <select data-platform="dy" data-field="status"><option>正常</option><option>有异常</option><option>已处理</option></select>
+            <textarea placeholder="待处理事项: 差评/客服消息..." data-platform="dy" data-field="note"></textarea>
+            <input placeholder="处理记录" data-platform="dy" data-field="action">
+          </div>
+          <canvas class="plat-chart" id="chart-dy" height="210"></canvas>
+        </div>
+        <!-- 拼多多 -->
+        <div class="platform-card">
+          <div class="pname"><div class="pdot" style="background:#e53e3e"></div>拼多多</div>
+          <div class="pgrid shops-grid">
+            <div class="fld"><label>昨日金额</label><input placeholder="元" data-platform="pdd" data-field="yestAmt" oninput="calcActual('pdd');updateChart()" inputmode="decimal"></div>
+            <div class="fld"><label>退款金额</label><input placeholder="元" data-platform="pdd" data-field="refundAmt" oninput="calcActual('pdd');updateChart()" inputmode="decimal"></div>
+            <div class="fld"><label>实际金额</label><input placeholder="自动计算" data-platform="pdd" data-field="actualAmt" readonly class="calc-field" tabindex="-1"></div>
+            <div class="fld"><label>直通车金额</label><input placeholder="元" data-platform="pdd" data-field="ztcAmt" oninput="updateChart()" inputmode="decimal"></div>
+            <div class="fld"><label>总访客</label><input placeholder="人" data-platform="pdd" data-field="visitors" oninput="updateChart()" inputmode="numeric"></div>
+            <div class="fld"><label>成交人数</label><input placeholder="人" data-platform="pdd" data-field="orders" oninput="updateChart()" inputmode="numeric"></div>
+            <select data-platform="pdd" data-field="status"><option>正常</option><option>有异常</option><option>已处理</option></select>
+            <textarea placeholder="待处理事项: 工单/客服..." data-platform="pdd" data-field="note"></textarea>
+            <input placeholder="处理记录" data-platform="pdd" data-field="action">
+          </div>
+          <canvas class="plat-chart" id="chart-pdd" height="210"></canvas>
+        </div>
+      </div>
+    </div>
+    <!-- 历史查询 -->
+    <div class="card" id="historyCard">
+      <div class="card-hd">
+        <div class="dot" style="background:var(--purple)"></div>历史查询
+        <span style="font-size:11px;color:var(--text2);margin-left:auto;" id="historyCount">加载中...</span>
+      </div>
+      <div class="card-bd">
+        <input class="search-bar" id="searchKeyword" placeholder="搜索关键词：金额/备注/状态/产品名..." oninput="renderHistory()">
+        <div class="date-chips" id="historyDateChips"></div>
+        <div class="history-list" id="historyList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== 仓库盘点 ====== -->
+  <section class="section" id="sec-wh">
+    <div class="card">
+      <div class="card-hd"><div class="dot" style="background:var(--green)"></div>仓库库存巡查<span style="font-size:11px;color:var(--text2);margin-left:auto;">~1h</span></div>
+      <div class="card-bd" id="whContainer">
+        <div class="wh-row">
+          <input placeholder="库位编号" data-wh="0" data-wfield="loc">
+          <input placeholder="产品SKU/名称" data-wh="0" data-wfield="sku">
+          <input placeholder="系统库存" data-wh="0" data-wfield="sys">
+          <input placeholder="实物库存" data-wh="0" data-wfield="real">
+          <input placeholder="差异(±)" data-wh="0" data-wfield="diff">
+          <select data-wh="0" data-wfield="status"><option>一致</option><option>盘盈</option><option>盘亏</option></select>
+          <input placeholder="原因说明" class="w-full" data-wh="0" data-wfield="note">
+          <div class="photo-area" data-wh-photos="0"></div>
+        </div>
+      </div>
+      <button class="add-btn" onclick="addWarehouseRow()">+ 添加库位</button>
+    </div>
+  </section>
+
+  <!-- ====== 闲鱼上架 ====== -->
+  <section class="section" id="sec-xy">
+    <div class="card">
+      <div class="card-hd"><div class="dot" style="background:var(--amber)"></div>闲鱼上架记录<span style="font-size:11px;color:var(--text2);margin-left:auto;">低价出清</span></div>
+      <div class="card-bd" id="xyContainer">
+        <div class="xy-row">
+          <input placeholder="产品编号" data-xy="0" data-xfield="code">
+          <input placeholder="产品名称" data-xy="0" data-xfield="name">
+          <input placeholder="数量" data-xy="0" data-xfield="qty">
+          <input placeholder="售价(元)" data-xy="0" data-xfield="price">
+          <input placeholder="成本(元)" data-xy="0" data-xfield="cost">
+          <select data-xy="0" data-xfield="source"><option>直销</option><option>二手</option><option>瑕疵</option></select>
+          <input placeholder="存放位置" data-xy="0" data-xfield="location">
+          <input placeholder="快递单号" data-xy="0" data-xfield="tracking">
+          <select data-xy="0" data-xfield="listStatus" onchange="onXyStatusChange(this)"><option>待上架</option><option>已上架</option></select>
+          <select data-xy="0" data-xfield="sellStatus" onchange="onXyStatusChange(this)"><option>在售</option><option>已售出</option></select>
+          <div class="xy-field-ts" data-xy="0" data-xfield="listTime">--</div>
+          <div class="xy-field-ts" data-xy="0" data-xfield="soldTime">--</div>
+          <input placeholder="闲鱼链接" class="full" data-xy="0" data-xfield="link">
+          <input placeholder="瑕疵说明/备注" class="full" data-xy="0" data-xfield="note">
+          <div class="photo-area" data-xy-photos="0"></div>
+        </div>
+      </div>
+      <button class="add-btn" onclick="addXianyuRow()">+ 添加产品</button>
+    </div>
+  </section>
+
+  <!-- ====== 杂事小结 ====== -->
+  <section class="section" id="sec-misc">
+    <div class="card">
+      <div class="card-hd"><div class="dot" style="background:var(--purple)"></div>杂事处理 & 备注</div>
+      <div class="card-bd">
+        <div class="misc-grid">
+          <div class="misc-card">
+            <label>今日杂事</label>
+            <textarea id="miscTasks" placeholder="例：联系快递改地址、处理退货包裹、回复钉钉消息..."></textarea>
+          </div>
+          <div class="misc-card">
+            <label>明日待办</label>
+            <textarea id="tomorrowTasks" placeholder="例：补货清单确认、需跟进的售后退款..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><div class="dot" style="background:#0891b2"></div>今日小结</div>
+      <div class="card-bd">
+        <div class="summary-row">
+          <div class="sfield"><label>工作时长</label><input placeholder="09:00-18:00" id="workHours"></div>
+          <div class="sfield"><label>店铺异常数</label><input placeholder="数量" id="shopIssues"></div>
+          <div class="sfield"><label>仓库异常库位数</label><input placeholder="数量" id="warehouseIssues"></div>
+          <div class="sfield"><label>闲鱼上架数</label><input placeholder="数量" id="xianyuCount"></div>
+          <div class="full sfield"><label>重要事项 / 跟进记录</label><textarea id="keyNotes" placeholder="今日需特别记录的事项、异常跟进情况..."></textarea></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== 操作日志按钮 ====== -->
+  <button class="oplog-toggle-btn" id="oplogToggleBtn" onclick="toggleOplog()">
+    操作日志 <span class="oplog-badge" id="oplogToggleCount">0</span>
+  </button>
+
+  <!-- ====== 操作记录 ====== -->
+  <section class="section oplog-section" id="sec-oplog">
+    <div class="card">
+      <div class="card-hd">
+        <div class="dot" style="background:#0891b2"></div>操作日志
+        <span style="font-size:11px;color:var(--text2);margin-left:auto;" id="oplogCount">加载中...</span>
+      </div>
+      <div class="card-bd">
+        <input class="search-bar" id="oplogSearch" placeholder="搜索操作日志..." oninput="renderOperationLogs()">
+        <div class="date-chips" id="oplogDateChips"></div>
+        <div class="log-list" id="oplogList"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="bottombar">
+  <button class="btn btn-danger" onclick="resetAll()">清空</button>
+  <button class="btn btn-save" onclick="saveAll()">保存</button>
+  <button class="btn btn-ghost" onclick="changeDate()">换日期</button>
+</div>
+
+<!-- Photo modal -->
+<div class="modal-mask" id="photoModal">
+  <div class="modal">
+    <h3 id="photoModalTitle">拍照</h3>
+    <video id="cameraPreview" autoplay playsinline></video>
+    <canvas id="cameraCanvas"></canvas>
+    <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="btnCameraOpen" onclick="openCamera()">打开相机</button>
+      <button class="btn btn-ghost" onclick="pickFromGallery()">相册选择</button>
+      <button class="btn btn-ghost" id="btnCapture" onclick="capturePhoto()" style="display:none">拍照</button>
+      <button class="btn btn-ghost" onclick="closePhotoModal()">取消</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== Core State ====================
+var currentDate = new Date();
+var photoTarget = null; // {section:'xy','row':0}
+var cameraStream = null;
+var DB = null;
+
+// ==================== IndexedDB for photos ====================
+function openDB() {
+  return new Promise(function(resolve, reject) {
+    var req = indexedDB.open('WorkLogPhotos', 1);
+    req.onupgradeneeded = function(e) {
+      var db = e.target.result;
+      if (!db.objectStoreNames.contains('photos')) {
+        db.createObjectStore('photos', {keyPath:'id'});
+      }
+    };
+    req.onsuccess = function(e) { DB = e.target.result; resolve(); };
+    req.onerror = function() { reject(); };
+  });
+}
+
+function savePhoto(id, blob) {
+  return new Promise(function(resolve) {
+    var tx = DB.transaction('photos','readwrite');
+    var store = tx.objectStore('photos');
+    store.put({id:id, blob:blob, ts:Date.now()});
+    tx.oncomplete = resolve;
+  });
+}
+
+function getPhoto(id) {
+  return new Promise(function(resolve) {
+    var tx = DB.transaction('photos','readonly');
+    var store = tx.objectStore('photos');
+    var req = store.get(id);
+    req.onsuccess = function() { resolve(req.result ? req.result.blob : null); };
+    req.onerror = function() { resolve(null); };
+  });
+}
+
+function getAllPhotoIds() {
+  return new Promise(function(resolve) {
+    var tx = DB.transaction('photos','readonly');
+    var store = tx.objectStore('photos');
+    var req = store.getAllKeys();
+    req.onsuccess = function() { resolve(req.result || []); };
+    req.onerror = function() { resolve([]); };
+  });
+}
+
+// ==================== Date helpers ====================
+function fmtDate(d) {
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function dateKey() { return 'wl_'+fmtDate(currentDate); }
+function photoPrefix() { return fmtDate(currentDate); }
+
+function updateDateDisplay() {
+  var ds = ['日','一','二','三','四','五','六'];
+  document.getElementById('dateDisp').textContent =
+    (currentDate.getMonth()+1)+'月'+currentDate.getDate()+'日 周'+ds[currentDate.getDay()];
+  document.getElementById('logDate').value = fmtDate(currentDate);
+}
+
+// ==================== Tab UI ====================
+document.querySelectorAll('.tab').forEach(function(t) {
+  t.addEventListener('click', function() {
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active')});
+    t.classList.add('active');
+    document.querySelectorAll('.section').forEach(function(x){x.classList.remove('active')});
+    document.getElementById('sec-'+t.dataset.tab).classList.add('active');
+    if (t.dataset.tab === 'shop') { setTimeout(updateChart, 100); }
+  });
+});
+
+// ==================== Photo Modal ====================
+function showToast(msg) {
+  var el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(function(){el.classList.remove('show')},1800);
+}
+
+function openPhotoModal(title, cb) {
+  document.getElementById('photoModalTitle').textContent = title;
+  document.getElementById('photoModal').classList.add('show');
+  document.getElementById('btnCameraOpen').style.display = '';
+  document.getElementById('btnCapture').style.display = 'none';
+  document.getElementById('cameraPreview').style.display = 'none';
+  window._photoCallback = cb;
+  window._photoTitle = title;
+}
+
+function closePhotoModal() {
+  document.getElementById('photoModal').classList.remove('show');
+  stopCamera();
+  window._photoCallback = null;
+}
+
+function openCamera() {
+  var video = document.getElementById('cameraPreview');
+  var btnOpen = document.getElementById('btnCameraOpen');
+  var btnCap = document.getElementById('btnCapture');
+  stopCamera();
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false})
+      .then(function(stream) {
+        cameraStream = stream;
+        video.srcObject = stream;
+        video.style.display = 'block';
+        btnOpen.style.display = 'none';
+        btnCap.style.display = '';
+      })
+      .catch(function() {
+        showToast('无法打开相机，请用相册选择');
+        document.getElementById('photoInput').click();
+      });
+  } else {
+    showToast('浏览器不支持相机，请用相册选择');
+    document.getElementById('photoInput').click();
+  }
+}
+
+function stopCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(function(t){t.stop()});
+    cameraStream = null;
+  }
+  document.getElementById('cameraPreview').srcObject = null;
+  document.getElementById('cameraPreview').style.display = 'none';
+}
+
+function capturePhoto() {
+  var video = document.getElementById('cameraPreview');
+  var canvas = document.getElementById('cameraCanvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  var ctx = canvas.getContext('2d');
+  ctx.drawImage(video,0,0);
+  canvas.toBlob(function(blob) {
+    if (window._photoCallback) window._photoCallback(blob);
+    if (window._photoTitle) logOperation('photo_add', window._photoTitle, 'system');
+    closePhotoModal();
+  }, 'image/jpeg', 0.85);
+  stopCamera();
+}
+
+function pickFromGallery() {
+  stopCamera();
+  var input = document.getElementById('photoInput');
+  input.onchange = function() {
+    if (input.files && input.files[0]) {
+      if (window._photoCallback) window._photoCallback(input.files[0]);
+      if (window._photoTitle) logOperation('photo_add', '相册 - '+window._photoTitle, 'system');
+      closePhotoModal();
+    }
+    input.value = '';
+  };
+  input.click();
+}
+
+// ==================== Photo rendering in rows ====================
+function renderPhotos(containerEl, photoIds) {
+  containerEl.innerHTML = '';
+  photoIds.forEach(function(pid) {
+    getPhoto(pid).then(function(blob) {
+      if (blob) {
+        var url = URL.createObjectURL(blob);
+        var img = document.createElement('img');
+        img.className = 'photo-thumb';
+        img.src = url;
+        containerEl.appendChild(img);
+      }
+    });
+  });
+  if (photoIds.length < 4) {
+    var btn = document.createElement('button');
+    btn.className = 'photo-btn';
+    btn.textContent = '拍照';
+    btn.onclick = function(e) {
+      e.preventDefault();
+      var section = containerEl.dataset.section;
+      var row = containerEl.dataset.row;
+      openPhotoModal('拍照 - '+section+' #'+(parseInt(row)+1), function(blob) {
+        var pid = photoPrefix()+'_'+section+'_'+row+'_'+Date.now();
+        savePhoto(pid, blob).then(function() {
+          var existing = JSON.parse(localStorage.getItem(dateKey()+'_photos')||'{}');
+          var key = section+'_'+row;
+          existing[key] = (existing[key]||[]).concat([pid]);
+          localStorage.setItem(dateKey()+'_photos', JSON.stringify(existing));
+          renderPhotos(containerEl, existing[key]||[]);
+          showToast('照片已保存');
+        });
+      });
+    };
+    containerEl.appendChild(btn);
+  }
+}
+
+function initRowPhotos(containerEl, section, row) {
+  containerEl.dataset.section = section;
+  containerEl.dataset.row = row;
+  var photoData = JSON.parse(localStorage.getItem(dateKey()+'_photos')||'{}');
+  var key = section+'_'+row;
+  renderPhotos(containerEl, photoData[key]||[]);
+}
+
+// ==================== Warehouse rows ====================
+var whRowCount = 1;
+function addWarehouseRow() {
+  var container = document.getElementById('whContainer');
+  var idx = whRowCount++;
+  var div = document.createElement('div');
+  div.className = 'wh-row';
+  div.innerHTML =
+    '<input placeholder="库位编号" data-wh="'+idx+'" data-wfield="loc">'+
+    '<input placeholder="产品SKU/名称" data-wh="'+idx+'" data-wfield="sku">'+
+    '<input placeholder="系统库存" data-wh="'+idx+'" data-wfield="sys">'+
+    '<input placeholder="实物库存" data-wh="'+idx+'" data-wfield="real">'+
+    '<input placeholder="差异(±)" data-wh="'+idx+'" data-wfield="diff">'+
+    '<select data-wh="'+idx+'" data-wfield="status"><option>一致</option><option>盘盈</option><option>盘亏</option></select>'+
+    '<input placeholder="原因说明" class="w-full" data-wh="'+idx+'" data-wfield="note">'+
+    '<div class="photo-area" data-wh-photos="'+idx+'"></div>';
+  container.appendChild(div);
+  initRowPhotos(div.querySelector('.photo-area'), 'wh', String(idx));
+  var locEl = div.querySelector('[data-wfield="loc"]');
+  var locInfo = locEl && locEl.value ? '「'+locEl.value+'」' : '#'+(idx+1);
+  logOperation('wh_add', '新增库位'+locInfo, 'wh');
+}
+
+function loadWarehouseRows(saved) {
+  if (!saved || !saved.whRows) return;
+  var container = document.getElementById('whContainer');
+  container.innerHTML = '';
+  whRowCount = saved.whRows.length;
+  saved.whRows.forEach(function(row, i) {
+    var div = document.createElement('div');
+    div.className = 'wh-row';
+    div.innerHTML =
+      '<input placeholder="库位编号" data-wh="'+i+'" data-wfield="loc">'+
+      '<input placeholder="产品SKU/名称" data-wh="'+i+'" data-wfield="sku">'+
+      '<input placeholder="系统库存" data-wh="'+i+'" data-wfield="sys">'+
+      '<input placeholder="实物库存" data-wh="'+i+'" data-wfield="real">'+
+      '<input placeholder="差异(±)" data-wh="'+i+'" data-wfield="diff">'+
+      '<select data-wh="'+i+'" data-wfield="status"><option>一致</option><option>盘盈</option><option>盘亏</option></select>'+
+      '<input placeholder="原因说明" class="w-full" data-wh="'+i+'" data-wfield="note">'+
+      '<div class="photo-area" data-wh-photos="'+i+'"></div>';
+    container.appendChild(div);
+    var inputs = div.querySelectorAll('input,select');
+    inputs[0].value = row.loc||''; inputs[1].value = row.sku||'';
+    inputs[2].value = row.sys||''; inputs[3].value = row.real||'';
+    inputs[4].value = row.diff||''; inputs[5].value = row.status||'一致';
+    inputs[6].value = row.note||'';
+    initRowPhotos(div.querySelector('.photo-area'), 'wh', String(i));
+  });
+}
+
+function collectWarehouseData() {
+  var rows = [];
+  document.querySelectorAll('.wh-row').forEach(function(r) {
+    var inputs = r.querySelectorAll('input,select');
+    rows.push({
+      loc:inputs[0].value, sku:inputs[1].value, sys:inputs[2].value,
+      real:inputs[3].value, diff:inputs[4].value, status:inputs[5].value, note:inputs[6].value
+    });
+  });
+  return rows;
+}
+
+// ==================== Xianyu rows ====================
+var xyRowCount = 1;
+function addXianyuRow(productName) {
+  var container = document.getElementById('xyContainer');
+  var idx = xyRowCount++;
+  var div = document.createElement('div');
+  div.className = 'xy-row';
+  div.innerHTML =
+    '<input placeholder="产品编号" data-xy="'+idx+'" data-xfield="code">'+
+    '<input placeholder="产品名称" data-xy="'+idx+'" data-xfield="name">'+
+    '<input placeholder="数量" data-xy="'+idx+'" data-xfield="qty">'+
+    '<input placeholder="售价(元)" data-xy="'+idx+'" data-xfield="price">'+
+    '<input placeholder="成本(元)" data-xy="'+idx+'" data-xfield="cost">'+
+    '<select data-xy="'+idx+'" data-xfield="source"><option>直销</option><option>二手</option><option>瑕疵</option></select>'+
+    '<input placeholder="存放位置" data-xy="'+idx+'" data-xfield="location">'+
+    '<input placeholder="快递单号" data-xy="'+idx+'" data-xfield="tracking">'+
+    '<select data-xy="'+idx+'" data-xfield="listStatus" onchange="onXyStatusChange(this)"><option>待上架</option><option>已上架</option></select>'+
+    '<select data-xy="'+idx+'" data-xfield="sellStatus" onchange="onXyStatusChange(this)"><option>在售</option><option>已售出</option></select>'+
+    '<div class="xy-field-ts" data-xy="'+idx+'" data-xfield="listTime">--</div>'+
+    '<div class="xy-field-ts" data-xy="'+idx+'" data-xfield="soldTime">--</div>'+
+    '<input placeholder="闲鱼链接" class="full" data-xy="'+idx+'" data-xfield="link">'+
+    '<input placeholder="瑕疵说明/备注" class="full" data-xy="'+idx+'" data-xfield="note">'+
+    '<div class="photo-area" data-xy-photos="'+idx+'"></div>';
+  container.appendChild(div);
+  initRowPhotos(div.querySelector('.photo-area'), 'xy', String(idx));
+  // If product name provided, fill it and log
+  if (productName) {
+    div.querySelector('[data-xfield="name"]').value = productName;
+    logOperation('xy_add', '添加闲鱼产品「'+productName+'」', 'xy');
+  }
+}
+
+function loadXianyuRows(saved) {
+  if (!saved || !saved.xyRows) return;
+  var container = document.getElementById('xyContainer');
+  container.innerHTML = '';
+  xyRowCount = saved.xyRows.length;
+  saved.xyRows.forEach(function(row, i) {
+    var div = document.createElement('div');
+    div.className = 'xy-row';
+    div.innerHTML =
+      '<input placeholder="产品编号" data-xy="'+i+'" data-xfield="code">'+
+      '<input placeholder="产品名称" data-xy="'+i+'" data-xfield="name">'+
+      '<input placeholder="数量" data-xy="'+i+'" data-xfield="qty">'+
+      '<input placeholder="售价(元)" data-xy="'+i+'" data-xfield="price">'+
+      '<input placeholder="成本(元)" data-xy="'+i+'" data-xfield="cost">'+
+      '<select data-xy="'+i+'" data-xfield="source"><option>直销</option><option>二手</option><option>瑕疵</option></select>'+
+      '<input placeholder="存放位置" data-xy="'+i+'" data-xfield="location">'+
+      '<input placeholder="快递单号" data-xy="'+i+'" data-xfield="tracking">'+
+      '<select data-xy="'+i+'" data-xfield="listStatus" onchange="onXyStatusChange(this)"><option>待上架</option><option>已上架</option></select>'+
+      '<select data-xy="'+i+'" data-xfield="sellStatus" onchange="onXyStatusChange(this)"><option>在售</option><option>已售出</option></select>'+
+      '<div class="xy-field-ts" data-xy="'+i+'" data-xfield="listTime">--</div>'+
+      '<div class="xy-field-ts" data-xy="'+i+'" data-xfield="soldTime">--</div>'+
+      '<input placeholder="闲鱼链接" class="full" data-xy="'+i+'" data-xfield="link">'+
+      '<input placeholder="瑕疵说明/备注" class="full" data-xy="'+i+'" data-xfield="note">'+
+      '<div class="photo-area" data-xy-photos="'+i+'"></div>';
+    container.appendChild(div);
+    var inputs = div.querySelectorAll('input,select');
+    inputs[0].value = row.code||''; inputs[1].value = row.name||'';
+    inputs[2].value = row.qty||''; inputs[3].value = row.price||'';
+    inputs[4].value = row.cost||''; inputs[5].value = row.source||'直销';
+    inputs[6].value = row.location||''; inputs[7].value = row.tracking||'';
+    inputs[8].value = row.listStatus||'待上架'; inputs[9].value = row.sellStatus||'在售';
+    inputs[10].value = row.link||''; inputs[11].value = row.note||'';
+    // Restore timestamps
+    div.querySelector('[data-xfield="listTime"]').textContent = row.listTime||'--';
+    div.querySelector('[data-xfield="soldTime"]').textContent = row.soldTime||'--';
+    initRowPhotos(div.querySelector('.photo-area'), 'xy', String(i));
+  });
+}
+
+function collectXianyuData() {
+  var rows = [];
+  document.querySelectorAll('.xy-row').forEach(function(r) {
+    var inputs = r.querySelectorAll('input,select');
+    var listTimeEl = r.querySelector('[data-xfield="listTime"]');
+    var soldTimeEl = r.querySelector('[data-xfield="soldTime"]');
+    rows.push({
+      code:inputs[0].value, name:inputs[1].value,
+      qty:inputs[2].value, price:inputs[3].value,
+      cost:inputs[4].value, source:inputs[5].value,
+      location:inputs[6].value, tracking:inputs[7].value,
+      listStatus:inputs[8].value, sellStatus:inputs[9].value,
+      link:inputs[10].value, note:inputs[11].value,
+      listTime: listTimeEl ? listTimeEl.textContent : '--',
+      soldTime: soldTimeEl ? soldTimeEl.textContent : '--'
+    });
+  });
+  return rows;
+}
+
+// ==================== Xianyu auto-timestamps ====================
+function getBeijingTime() {
+  var now = new Date();
+  var y = now.getFullYear();
+  var mo = String(now.getMonth()+1).padStart(2,'0');
+  var d = String(now.getDate()).padStart(2,'0');
+  var h = String(now.getHours()).padStart(2,'0');
+  var mi = String(now.getMinutes()).padStart(2,'0');
+  return y+'-'+mo+'-'+d+' '+h+':'+mi;
+}
+
+function onXyStatusChange(selectEl) {
+  var row = selectEl.closest('.xy-row');
+  var field = selectEl.dataset.xfield;
+  var idx = selectEl.dataset.xy;
+  var now = getBeijingTime();
+
+  if (field === 'listStatus' && selectEl.value === '已上架') {
+    var timeEl = row.querySelector('[data-xfield="listTime"]');
+    if (timeEl && timeEl.textContent === '--') {
+      timeEl.textContent = now;
+      var nameEl = row.querySelector('[data-xfield="name"]');
+      var pname = nameEl ? nameEl.value || ('#'+idx) : ('#'+idx);
+      logOperation('xy_listed', '「'+pname+'」已上架闲鱼', 'xy');
+    }
+  } else if (field === 'sellStatus' && selectEl.value === '已售出') {
+    var timeEl = row.querySelector('[data-xfield="soldTime"]');
+    if (timeEl && timeEl.textContent === '--') {
+      timeEl.textContent = now;
+      var nameEl = row.querySelector('[data-xfield="name"]');
+      var pname = nameEl ? nameEl.value || ('#'+idx) : ('#'+idx);
+      logOperation('xy_sold', '「'+pname+'」已售出', 'xy');
+    }
+  }
+}
+
+// ==================== Operation Log ====================
+var oplogFilter = 'all';
+
+function logOperation(type, detail, section) {
+  var now = new Date();
+  var tsISO = now.toISOString();
+  var dateStr = fmtDate(now);
+  var entry = { ts: tsISO, date: dateStr, type: type, detail: detail, section: section || 'system' };
+  var logs = [];
+  try { logs = JSON.parse(localStorage.getItem('oplog') || '[]'); } catch(e) {}
+  logs.unshift(entry);
+  if (logs.length > 500) logs = logs.slice(0, 500);
+  localStorage.setItem('oplog', JSON.stringify(logs));
+  var ol = document.getElementById('oplogList');
+  if (ol && ol.offsetParent !== null) renderOperationLogs();
+}
+
+function getOperationLogs() {
+  try { return JSON.parse(localStorage.getItem('oplog') || '[]'); } catch(e) { return []; }
+}
+
+function renderOperationLogChips() {
+  var container = document.getElementById('oplogDateChips');
+  if (!container) return;
+  var chips = [
+    { label: '全部', value: 'all' },
+    { label: '今天', value: 'today' },
+    { label: '近7天', value: '7d' },
+    { label: '近30天', value: '30d' }
+  ];
+  var html = '';
+  chips.forEach(function(c){
+    var cls = 'date-chip' + (oplogFilter === c.value ? ' active' : '');
+    html += '<span class="'+cls+'" onclick="setOpLogFilter(\''+c.value+'\')">'+c.label+'</span>';
+  });
+  container.innerHTML = html;
+}
+
+function setOpLogFilter(filter) {
+  oplogFilter = filter;
+  renderOperationLogChips();
+  renderOperationLogs();
+}
+
+function renderOperationLogs() {
+  var list = document.getElementById('oplogList');
+  var countEl = document.getElementById('oplogCount');
+  if (!list) return;
+  var keyword = (document.getElementById('oplogSearch').value || '').trim().toLowerCase();
+  var allLogs = getOperationLogs();
+  var today = fmtDate(new Date());
+  var now = new Date();
+  var filtered = allLogs.filter(function(log){
+    if (oplogFilter === 'today' && log.date !== today) return false;
+    if (oplogFilter === '7d') {
+      var cutoff7 = fmtDate(new Date(now - 7*86400000));
+      if (log.date < cutoff7) return false;
+    }
+    if (oplogFilter === '30d') {
+      var cutoff30 = fmtDate(new Date(now - 30*86400000));
+      if (log.date < cutoff30) return false;
+    }
+    if (keyword && log.detail.toLowerCase().indexOf(keyword) === -1) return false;
+    return true;
+  });
+  countEl.textContent = filtered.length + '条日志';
+  updateOplogToggleCount();
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="log-empty">' + (keyword ? '无匹配日志' : '暂无操作记录') + '</div>';
+    return;
+  }
+  var typeLabels = { save:'保存', reset:'清空', xy_listed:'上架', xy_sold:'售出', xy_add:'添加', wh_add:'库位', date_switch:'切日', photo_add:'拍照' };
+  var html = '';
+  filtered.forEach(function(log){
+    var d = new Date(log.ts);
+    var timeStr = (log.date||'') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    var badgeCls = 'log-badge ' + (log.type||'save');
+    html += '<div class="log-item">'+
+      '<div class="log-dot" style="background:'+
+        (log.type==='save'?'var(--blue)':log.type==='reset'?'var(--red)':log.type==='xy_listed'?'var(--green)':log.type==='xy_sold'?'var(--amber)':log.type==='xy_add'?'var(--purple)':log.type==='wh_add'?'#0891b2':log.type==='date_switch'?'#0369a1':log.type==='photo_add'?'#a16207':'#888')+
+      '"></div>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div class="log-time">'+timeStr+'</div>'+
+        '<div class="log-detail"><span class="'+badgeCls+'">'+(typeLabels[log.type]||log.type)+'</span>'+(log.detail||'')+'</div>'+
+      '</div>'+
+      '<button class="log-view-btn" onclick="viewLogEntry(\''+log.ts+'\')">查看</button>'+
+    '</div>';
+  });
+  list.innerHTML = html;
+}
+
+var oplogVisible = false;
+function toggleOplog() {
+  oplogVisible = !oplogVisible;
+  var sec = document.getElementById('sec-oplog');
+  var btn = document.getElementById('oplogToggleBtn');
+  if (oplogVisible) {
+    sec.classList.add('show');
+    if (btn) btn.textContent = '收起日志';
+  } else {
+    sec.classList.remove('show');
+    updateOplogToggleCount();
+  }
+  renderOperationLogs();
+}
+function updateOplogToggleCount() {
+  var logs = getOperationLogs();
+  var badge = document.getElementById('oplogToggleCount');
+  var btn = document.getElementById('oplogToggleBtn');
+  if (badge) badge.textContent = logs.length;
+  if (btn && !oplogVisible) {
+    var cnt = logs.length > 0 ? ' (' + logs.length + '条)' : '';
+    btn.innerHTML = '操作日志 <span class="oplog-badge" id="oplogToggleCount">' + logs.length + '</span>';
+  }
+}
+
+function viewLogEntry(ts) {
+  var allLogs = getOperationLogs();
+  var log = null;
+  for (var i = 0; i < allLogs.length; i++) {
+    if (allLogs[i].ts === ts) { log = allLogs[i]; break; }
+  }
+  if (!log) return;
+  var sec = log.section || '';
+  var type = log.type || '';
+  // Determine target tab
+  var tabMap = { wh:'warehouse', xy:'xianyu', system:'inspect' };
+  var targetTab = tabMap[sec] || 'inspect';
+  if (type.indexOf('xy_') === 0) targetTab = 'xianyu';
+  if (type.indexOf('wh_') === 0) targetTab = 'warehouse';
+  if (type === 'date_switch') targetTab = 'inspect';
+  if (type === 'photo_add') {
+    var detail = (log.detail||'').toLowerCase();
+    if (detail.indexOf('xy') >= 0 || detail.indexOf('qy') >= 0) targetTab = 'xianyu';
+    else if (detail.indexOf('wh') >= 0) targetTab = 'warehouse';
+    else targetTab = 'inspect';
+  }
+  // If date in log differs from current, jump to that date
+  if (log.date && log.date !== fmtDate(currentDate)) {
+    var parts = log.date.split('-');
+    currentDate = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+    updateDateDisplay();
+    resetForm();
+    loadAll();
+  }
+  // Switch tab
+  var tabEl = document.querySelector('.tab[data-tab="'+targetTab+'"]');
+  if (tabEl) tabEl.click();
+  // Scroll section into view
+  var secMap = { inspect:'sec-inspect', warehouse:'sec-warehouse', xianyu:'sec-xianyu', summary:'sec-summary' };
+  var secId = secMap[targetTab];
+  if (secId) {
+    var el = document.getElementById(secId);
+    if (el) setTimeout(function(){ el.scrollIntoView({behavior:'smooth',block:'start'}); }, 200);
+  }
+}
+
+// ==================== Platform data ====================
+function calcActual(plat) {
+  var yest = parseFloat(document.querySelector('[data-platform="'+plat+'"][data-field="yestAmt"]').value) || 0;
+  var refund = parseFloat(document.querySelector('[data-platform="'+plat+'"][data-field="refundAmt"]').value) || 0;
+  var actual = yest - refund;
+  var input = document.querySelector('[data-platform="'+plat+'"][data-field="actualAmt"]');
+  input.value = actual.toFixed(2);
+}
+
+function updateChart() {
+  requestAnimationFrame(function() {
+    drawAllPlatformCharts();
+  });
+}
+
+function drawAllPlatformCharts() {
+  var platforms = [
+    {key:'tb', name:'淘宝', color:'#ff5000', chartId:'chart-tb'},
+    {key:'tm', name:'天猫', color:'#e02e24', chartId:'chart-tm'},
+    {key:'dy', name:'抖音', color:'#000000', chartId:'chart-dy'},
+    {key:'pdd', name:'拼多多', color:'#e53e3e', chartId:'chart-pdd'}
+  ];
+  platforms.forEach(function(p) {
+    drawPlatformChart(p.key, p.chartId, p.color);
+  });
+}
+
+function drawPlatformChart(plat, canvasId, accentColor) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var dpr = window.devicePixelRatio || 1;
+  var rect = canvas.parentElement.getBoundingClientRect();
+  var w = rect.width - 24;
+  var h = 210;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  // Read current day's data from form (if filled but not yet saved)
+  var curActual = parseFloat(getFieldVal(plat,'actualAmt')) || 0;
+  var curVisitors = parseInt(getFieldVal(plat,'visitors')) || 0;
+  var curOrders = parseInt(getFieldVal(plat,'orders')) || 0;
+
+  // Collect all saved dates from localStorage
+  var allDates = [];
+  for (var i = 0; i < localStorage.length; i++) {
+    var key = localStorage.key(i);
+    if (key.indexOf('wl_') === 0) allDates.push(key.substring(3));
+  }
+  allDates.sort();
+  var todayStr = fmtDate(currentDate);
+  // Include today if not already in saved dates (for unsaved form data)
+  if (allDates.indexOf(todayStr) === -1) allDates.push(todayStr);
+  allDates.sort();
+  var dates = allDates.slice(-7);
+
+  var actualVals = [], visitorVals = [], orderVals = [], labels = [];
+  for (var d = 0; d < dates.length; d++) {
+    var raw = localStorage.getItem('wl_' + dates[d]);
+    var s = {};
+    if (raw) { var data = JSON.parse(raw); s = (data.shop && data.shop[plat]) ? data.shop[plat] : {}; }
+    // For today, use form values if they exist and are newer
+    if (dates[d] === todayStr) {
+      actualVals.push(curActual || (parseFloat(s.actualAmt) || 0));
+      visitorVals.push(curVisitors || (parseInt(s.visitors) || 0));
+      orderVals.push(curOrders || (parseInt(s.orders) || 0));
+    } else {
+      actualVals.push(parseFloat(s.actualAmt) || 0);
+      visitorVals.push(parseInt(s.visitors) || 0);
+      orderVals.push(parseInt(s.orders) || 0);
+    }
+    var parts = dates[d].split('-');
+    labels.push(parseInt(parts[1]) + '/' + parseInt(parts[2]));
+  }
+
+  ctx.clearRect(0, 0, w, h);
+
+  // Check if all data is zero
+  var allZero = actualVals.every(function(v){return v===0}) &&
+                visitorVals.every(function(v){return v===0}) &&
+                orderVals.every(function(v){return v===0});
+  if (allZero) {
+    ctx.fillStyle = '#ccc';
+    ctx.font = '12px -apple-system,"Microsoft YaHei",sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('暂无数据', w/2, h/2);
+    return;
+  }
+
+  var maxActual = Math.max.apply(null, actualVals.concat([1]));
+  var maxPeople = Math.max.apply(null, visitorVals.concat(orderVals, [1]));
+
+  var pad = {top:10, right:5, bottom:30, left:5};
+  var pw = w - pad.left - pad.right;
+  var ph = h - pad.top - pad.bottom - 18; // leave space for legend
+
+  // Grid lines
+  ctx.strokeStyle = '#f0efe8';
+  ctx.lineWidth = 0.5;
+  for (var s = 0; s <= 3; s++) {
+    var gy = pad.top + ph * (1 - s/3);
+    ctx.beginPath(); ctx.moveTo(pad.left, gy); ctx.lineTo(w - pad.right, gy); ctx.stroke();
+  }
+
+  // Bars: 实际金额
+  var barW = Math.min(12, (pw / Math.max(dates.length, 1)) * 0.4);
+  for (var i = 0; i < dates.length; i++) {
+    var barH = maxActual > 0 ? (actualVals[i] / maxActual) * ph : 0;
+    var bx = pad.left + (pw / Math.max(dates.length - 1, 1)) * i - barW/2;
+    if (dates.length === 1) bx = pad.left + pw/2 - barW/2;
+    ctx.fillStyle = accentColor;
+    ctx.globalAlpha = 0.25;
+    ctx.fillRect(bx, pad.top + ph - Math.max(barH, 0.5), barW, Math.max(barH, 0.5));
+    ctx.globalAlpha = 1;
+  }
+
+  // Lines: 总访客 and 成交人数
+  drawTrendLine(ctx, dates.length, visitorVals, maxPeople, pad, pw, ph, '#f59e0b');
+  drawTrendLine(ctx, dates.length, orderVals, maxPeople, pad, pw, ph, '#059669');
+
+  // X-axis labels
+  ctx.fillStyle = '#aaa';
+  ctx.font = '8px -apple-system,"Microsoft YaHei",sans-serif';
+  ctx.textAlign = 'center';
+  for (var i = 0; i < dates.length; i++) {
+    var lx = pad.left + (pw / Math.max(dates.length - 1, 1)) * i;
+    if (dates.length === 1) lx = pad.left + pw/2;
+    ctx.fillText(labels[i], lx, pad.top + ph + 12);
+  }
+
+  // Legend below x labels
+  var ly = pad.top + ph + 22;
+  var lx0 = pad.left;
+  var legendItems = [
+    {label:'实际', color:accentColor, alpha:0.25},
+    {label:'访客', color:'#f59e0b', alpha:1},
+    {label:'成交', color:'#059669', alpha:1}
+  ];
+  ctx.font = '8px -apple-system,"Microsoft YaHei",sans-serif';
+  legendItems.forEach(function(li) {
+    ctx.fillStyle = li.color;
+    ctx.globalAlpha = li.alpha;
+    ctx.fillRect(lx0, ly - 5, 8, 8);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#888';
+    ctx.textAlign = 'left';
+    ctx.fillText(li.label, lx0 + 10, ly + 2);
+    lx0 += 42;
+  });
+
+  // Value labels on bars for the last (today) data point
+  if (dates.length > 0) {
+    var li = dates.length - 1;
+    var lx = pad.left + (pw / Math.max(dates.length - 1, 1)) * li;
+    if (dates.length === 1) lx = pad.left + pw/2;
+    var labelY = pad.top + ph + 32;
+    ctx.font = '8px -apple-system,"Microsoft YaHei",sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = accentColor;
+    ctx.fillText('¥'+actualVals[li], lx, labelY);
+  }
+}
+
+function drawTrendLine(ctx, count, vals, maxVal, pad, pw, ph, color) {
+  if (count < 1) return;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (var i = 0; i < count; i++) {
+    var x = pad.left + (pw / Math.max(count - 1, 1)) * i;
+    if (count === 1) x = pad.left + pw/2;
+    var y = pad.top + ph - (maxVal > 0 ? (vals[i] / maxVal) * ph : 0);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  // Dots
+  for (var i = 0; i < count; i++) {
+    var x = pad.left + (pw / Math.max(count - 1, 1)) * i;
+    if (count === 1) x = pad.left + pw/2;
+    var y = pad.top + ph - (maxVal > 0 ? (vals[i] / maxVal) * ph : 0);
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(x, y, 1, 0, Math.PI*2); ctx.fill();
+  }
+}
+
+function getFieldVal(plat, field) {
+  var el = document.querySelector('[data-platform="'+plat+'"][data-field="'+field+'"]');
+  return el ? el.value : '';
+}
+
+function collectPlatformData() {
+  var data = {};
+  document.querySelectorAll('[data-platform]').forEach(function(el) {
+    var plat = el.dataset.platform;
+    var field = el.dataset.field;
+    if (!data[plat]) data[plat] = {};
+    data[plat][field] = el.value;
+  });
+  return data;
+}
+
+function restorePlatformData(data) {
+  if (!data) return;
+  document.querySelectorAll('[data-platform]').forEach(function(el) {
+    var plat = el.dataset.platform;
+    var field = el.dataset.field;
+    if (data[plat] && data[plat][field] !== undefined) {
+      el.value = data[plat][field];
+    }
+  });
+  // Recalc all actual amounts
+  ['tb','tm','dy','pdd'].forEach(function(p){ calcActual(p); });
+  updateChart();
+}
+
+// ==================== Save / Load ====================
+function saveAll() {
+  var data = {
+    date: fmtDate(currentDate),
+    shop: collectPlatformData(),
+    whRows: collectWarehouseData(),
+    xyRows: collectXianyuData(),
+    miscTasks: document.getElementById('miscTasks').value,
+    tomorrowTasks: document.getElementById('tomorrowTasks').value,
+    workHours: document.getElementById('workHours').value,
+    shopIssues: document.getElementById('shopIssues').value,
+    warehouseIssues: document.getElementById('warehouseIssues').value,
+    xianyuCount: document.getElementById('xianyuCount').value,
+    keyNotes: document.getElementById('keyNotes').value,
+    whRowCount: whRowCount,
+    xyRowCount: xyRowCount
+  };
+  localStorage.setItem(dateKey(), JSON.stringify(data));
+  showToast('已保存');
+  logOperation('save', '保存了 '+fmtDate(currentDate)+' 日常工作记录', 'system');
+  refreshHistoryUI();
+}
+
+function loadAll() {
+  var raw = localStorage.getItem(dateKey());
+  if (!raw) return;
+  var data = JSON.parse(raw);
+  restorePlatformData(data.shop);
+  loadWarehouseRows(data);
+  loadXianyuRows(data);
+  document.getElementById('miscTasks').value = data.miscTasks||'';
+  document.getElementById('tomorrowTasks').value = data.tomorrowTasks||'';
+  document.getElementById('workHours').value = data.workHours||'';
+  document.getElementById('shopIssues').value = data.shopIssues||'';
+  document.getElementById('warehouseIssues').value = data.warehouseIssues||'';
+  document.getElementById('xianyuCount').value = data.xianyuCount||'';
+  document.getElementById('keyNotes').value = data.keyNotes||'';
+  whRowCount = data.whRowCount||1;
+  xyRowCount = data.xyRowCount||1;
+  document.getElementById('logDate').value = data.date||fmtDate(currentDate);
+  // Re-init photos for all rows
+  document.querySelectorAll('.photo-area').forEach(function(el) {
+    var section = el.dataset.section;
+    var row = el.dataset.row;
+    var photoData = JSON.parse(localStorage.getItem(dateKey()+'_photos')||'{}');
+    var key = section+'_'+row;
+    renderPhotos(el, photoData[key]||[]);
+  });
+}
+
+function changeDate() {
+  var oldDate = fmtDate(currentDate);
+  var d = prompt('输入日期 (YYYY-MM-DD):', oldDate);
+  if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
+    var parts = d.split('-');
+    currentDate = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+    updateDateDisplay();
+    resetForm();
+    loadAll();
+    logOperation('date_switch', '手动切换 '+oldDate+' → '+fmtDate(currentDate), 'system');
+  }
+}
+
+function resetForm() {
+  // Reset platform fields
+  document.querySelectorAll('[data-platform]').forEach(function(el) { el.value = ''; });
+  document.querySelectorAll('[data-platform][data-field="status"]').forEach(function(el) { el.selectedIndex = 0; });
+  ['tb','tm','dy','pdd'].forEach(function(p){ calcActual(p); });
+  updateChart();
+  // Reset wh
+  var whc = document.getElementById('whContainer');
+  whc.innerHTML = '<div class="wh-row">'+
+    '<input placeholder="库位编号" data-wh="0" data-wfield="loc">'+
+    '<input placeholder="产品SKU/名称" data-wh="0" data-wfield="sku">'+
+    '<input placeholder="系统库存" data-wh="0" data-wfield="sys">'+
+    '<input placeholder="实物库存" data-wh="0" data-wfield="real">'+
+    '<input placeholder="差异(±)" data-wh="0" data-wfield="diff">'+
+    '<select data-wh="0" data-wfield="status"><option>一致</option><option>盘盈</option><option>盘亏</option></select>'+
+    '<input placeholder="原因说明" class="w-full" data-wh="0" data-wfield="note">'+
+    '<div class="photo-area" data-wh-photos="0"></div>'+
+    '</div>';
+  initRowPhotos(whc.querySelector('.photo-area'), 'wh', '0');
+  whRowCount = 1;
+  // Reset xy
+  var xyc = document.getElementById('xyContainer');
+  xyc.innerHTML = '<div class="xy-row">'+
+    '<input placeholder="产品编号" data-xy="0" data-xfield="code">'+
+    '<input placeholder="产品名称" data-xy="0" data-xfield="name">'+
+    '<input placeholder="数量" data-xy="0" data-xfield="qty">'+
+    '<input placeholder="售价(元)" data-xy="0" data-xfield="price">'+
+    '<input placeholder="成本(元)" data-xy="0" data-xfield="cost">'+
+    '<select data-xy="0" data-xfield="source"><option>直销</option><option>二手</option><option>瑕疵</option></select>'+
+    '<input placeholder="存放位置" data-xy="0" data-xfield="location">'+
+    '<input placeholder="快递单号" data-xy="0" data-xfield="tracking">'+
+    '<select data-xy="0" data-xfield="listStatus" onchange="onXyStatusChange(this)"><option>待上架</option><option>已上架</option></select>'+
+    '<select data-xy="0" data-xfield="sellStatus" onchange="onXyStatusChange(this)"><option>在售</option><option>已售出</option></select>'+
+    '<div class="xy-field-ts" data-xy="0" data-xfield="listTime">--</div>'+
+    '<div class="xy-field-ts" data-xy="0" data-xfield="soldTime">--</div>'+
+    '<input placeholder="闲鱼链接" class="full" data-xy="0" data-xfield="link">'+
+    '<input placeholder="瑕疵说明/备注" class="full" data-xy="0" data-xfield="note">'+
+    '<div class="photo-area" data-xy-photos="0"></div>'+
+    '</div>';
+  initRowPhotos(xyc.querySelector('.photo-area'), 'xy', '0');
+  xyRowCount = 1;
+  // Reset misc
+  document.getElementById('miscTasks').value = '';
+  document.getElementById('tomorrowTasks').value = '';
+  document.getElementById('workHours').value = '';
+  document.getElementById('shopIssues').value = '';
+  document.getElementById('warehouseIssues').value = '';
+  document.getElementById('xianyuCount').value = '';
+  document.getElementById('keyNotes').value = '';
+}
+
+function resetAll() {
+  if (!confirm('确定清空当前日期的全部记录？（照片不会删除）')) return;
+  localStorage.removeItem(dateKey());
+  resetForm();
+  updateDateDisplay();
+  logOperation('reset', '清空了 '+fmtDate(currentDate)+' 的记录', 'system');
+  showToast('已清空');
+  refreshHistoryUI();
+}
+
+// ==================== Date picker listener ====================
+document.getElementById('logDate').addEventListener('change', function() {
+  var v = this.value;
+  if (v) {
+    var parts = v.split('-');
+    currentDate = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+    updateDateDisplay();
+    resetForm();
+    loadAll();
+    refreshHistoryUI();
+  }
+});
+
+// ==================== History Query ====================
+var historyDateFilter = 'all'; // 'all' | '7d' | '30d'
+
+function getAllHistoryData() {
+  var records = [];
+  for (var i = 0; i < localStorage.length; i++) {
+    var key = localStorage.key(i);
+    if (key.indexOf('wl_') !== 0) continue;
+    var dateStr = key.substring(3);
+    var raw = localStorage.getItem(key);
+    try {
+      var data = JSON.parse(raw);
+      records.push({ date: dateStr, data: data });
+    } catch(e) {}
+  }
+  records.sort(function(a,b){ return a.date.localeCompare(b.date); });
+  return records;
+}
+
+function renderQuickDates() {
+  var container = document.getElementById('quickDates');
+  if (!container) return;
+  var today = fmtDate(new Date());
+  var yesterday = fmtDate(new Date(Date.now() - 86400000));
+  var records = getAllHistoryData();
+  var datesWithData = records.map(function(r){ return r.date; });
+
+  var chips = [
+    { label: '今天', date: today },
+    { label: '昨天', date: yesterday }
+  ];
+  // Add last 5 dates with data (excluding today/yesterday)
+  var extra = datesWithData.filter(function(d){ return d !== today && d !== yesterday; }).slice(-5);
+  extra.forEach(function(d){
+    var parts = d.split('-');
+    chips.push({ label: parseInt(parts[1])+'/'+parseInt(parts[2]), date: d });
+  });
+
+  var html = '';
+  var curDate = fmtDate(currentDate);
+  chips.forEach(function(c){
+    var cls = 'date-chip';
+    if (c.date === curDate) cls += ' active';
+    if (datesWithData.indexOf(c.date) !== -1 && c.date !== curDate) cls += ' has-data';
+    html += '<span class="'+cls+'" onclick="jumpToDate(\''+c.date+'\')">'+c.label+(datesWithData.indexOf(c.date)!==-1 && c.date!==curDate ? ' ✓' : '')+'</span>';
+  });
+  container.innerHTML = html;
+}
+
+function renderHistoryChips() {
+  var container = document.getElementById('historyDateChips');
+  if (!container) return;
+  var chips = [
+    { label: '全部', value: 'all' },
+    { label: '近7天', value: '7d' },
+    { label: '近30天', value: '30d' }
+  ];
+  var html = '';
+  chips.forEach(function(c){
+    var cls = 'date-chip' + (historyDateFilter === c.value ? ' active' : '');
+    html += '<span class="'+cls+'" onclick="setHistoryFilter(\''+c.value+'\')">'+c.label+'</span>';
+  });
+  container.innerHTML = html;
+}
+
+function setHistoryFilter(filter) {
+  historyDateFilter = filter;
+  renderHistoryChips();
+  renderHistory();
+}
+
+function renderHistory() {
+  var list = document.getElementById('historyList');
+  var countEl = document.getElementById('historyCount');
+  if (!list) return;
+
+  var keyword = (document.getElementById('searchKeyword').value || '').trim().toLowerCase();
+  var allRecords = getAllHistoryData();
+
+  // Date filter
+  var now = new Date();
+  var cutoff = null;
+  if (historyDateFilter === '7d') cutoff = fmtDate(new Date(now - 7*86400000));
+  else if (historyDateFilter === '30d') cutoff = fmtDate(new Date(now - 30*86400000));
+
+  var filtered = allRecords.filter(function(r){
+    if (cutoff && r.date < cutoff) return false;
+    if (!keyword) return true;
+    return matchKeyword(r, keyword);
+  });
+
+  countEl.textContent = filtered.length + '条记录';
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="hitem-empty">' + (keyword ? '无匹配记录' : '暂无历史数据') + '</div>';
+    return;
+  }
+
+  var platforms = [
+    { key: 'tb', name: '淘宝', color: '#ff5000' },
+    { key: 'tm', name: '天猫', color: '#e02e24' },
+    { key: 'dy', name: '抖音', color: '#000' },
+    { key: 'pdd', name: '拼多多', color: '#e53e3e' }
+  ];
+
+  var html = '';
+  filtered.forEach(function(rec){
+    var parts = rec.date.split('-');
+    var dateLabel = parseInt(parts[1])+'/'+parseInt(parts[2]);
+    var weekdays = ['日','一','二','三','四','五','六'];
+    var d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+    var wd = weekdays[d.getDay()];
+
+    var platHtml = '';
+    var hasAnomaly = false;
+    platforms.forEach(function(p){
+      var s = (rec.data.shop && rec.data.shop[p.key]) ? rec.data.shop[p.key] : {};
+      var amt = parseFloat(s.actualAmt) || 0;
+      var status = s.status || '正常';
+      if (status !== '正常') hasAnomaly = true;
+      if (amt > 0) {
+        platHtml += '<span style="color:'+p.color+';font-weight:500;">'+p.name+' ¥'+amt.toFixed(0)+'</span> ';
+      }
+    });
+
+    // Also search xianyu data for keyword matching
+    var xyNames = [];
+    if (rec.data.xyRows) {
+      rec.data.xyRows.forEach(function(r){ if(r.name) xyNames.push(r.name); });
+    }
+
+    html += '<div class="history-item" onclick="jumpToDate(\''+rec.date+'\')">'+
+      '<div class="hdate">'+dateLabel+'<div style="font-size:10px;color:var(--text2);">周'+wd+'</div></div>'+
+      '<div>'+
+        '<div class="hmeta">'+ (platHtml || '<span style="color:var(--text2)">无金额数据</span>') +'</div>'+
+        '<div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap;">'+
+          (hasAnomaly ? '<span class="hstatus warn">有异常</span>' : '<span class="hstatus ok">正常</span>')+
+          (xyNames.length > 0 ? '<span style="font-size:10px;color:var(--amber);">闲鱼:'+xyNames.slice(0,3).join(',')+(xyNames.length>3?'...':'')+'</span>' : '')+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  });
+  list.innerHTML = html;
+}
+
+function matchKeyword(rec, kw) {
+  // Search in all shop data fields
+  var platforms = ['tb','tm','dy','pdd'];
+  var fields = ['yestAmt','refundAmt','actualAmt','ztcAmt','visitors','orders','status','note','action'];
+  if (rec.data.shop) {
+    for (var p = 0; p < platforms.length; p++) {
+      var s = rec.data.shop[platforms[p]];
+      if (!s) continue;
+      for (var f = 0; f < fields.length; f++) {
+        var v = (s[fields[f]] || '').toString().toLowerCase();
+        if (v.indexOf(kw) !== -1) return true;
+      }
+    }
+  }
+  // Search in xianyu data
+  if (rec.data.xyRows) {
+    for (var i = 0; i < rec.data.xyRows.length; i++) {
+      var r = rec.data.xyRows[i];
+      if ((r.name||'').toLowerCase().indexOf(kw) !== -1) return true;
+      if ((r.note||'').toLowerCase().indexOf(kw) !== -1) return true;
+      if ((r.listStatus||'').toLowerCase().indexOf(kw) !== -1) return true;
+      if ((r.sellStatus||'').toLowerCase().indexOf(kw) !== -1) return true;
+    }
+  }
+  // Search in misc
+  if ((rec.data.miscTasks||'').toLowerCase().indexOf(kw) !== -1) return true;
+  if ((rec.data.keyNotes||'').toLowerCase().indexOf(kw) !== -1) return true;
+  // Search in warehouse
+  if (rec.data.whRows) {
+    for (var i = 0; i < rec.data.whRows.length; i++) {
+      var r = rec.data.whRows[i];
+      if ((r.sku||'').toLowerCase().indexOf(kw) !== -1) return true;
+      if ((r.note||'').toLowerCase().indexOf(kw) !== -1) return true;
+    }
+  }
+  return false;
+}
+
+function jumpToDate(dateStr) {
+  var oldDate = fmtDate(currentDate);
+  var parts = dateStr.split('-');
+  currentDate = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+  updateDateDisplay();
+  resetForm();
+  loadAll();
+  renderQuickDates();
+  window.scrollTo({top:0, behavior:'smooth'});
+  if (oldDate !== dateStr) {
+    logOperation('date_switch', '快捷切换 '+oldDate+' → '+dateStr, 'system');
+  }
+  showToast('已切换到 '+dateStr);
+}
+
+function refreshHistoryUI() {
+  renderQuickDates();
+  renderHistoryChips();
+  renderHistory();
+}
+
+// ==================== Init ====================
+openDB().then(function() {
+  updateDateDisplay();
+  loadAll();
+  initRowPhotos(document.querySelector('[data-wh-photos="0"]'), 'wh', '0');
+  initRowPhotos(document.querySelector('[data-xy-photos="0"]'), 'xy', '0');
+  refreshHistoryUI();
+  renderOperationLogChips();
+  renderOperationLogs();
+  updateOplogToggleCount();
+  // Init chart on first load
+  setTimeout(function(){ ['tb','tm','dy','pdd'].forEach(function(p){ calcActual(p); }); updateChart(); }, 300);
+});
+
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+
+// PWA install prompt
+var deferredPrompt;
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  setTimeout(function() {
+    if (confirm('将此应用添加到桌面？\n(添加到桌面后可作为独立APP使用)')) {
+      deferredPrompt.prompt();
+    }
+  }, 3000);
+});
+</script>
+</body>
+</html>
